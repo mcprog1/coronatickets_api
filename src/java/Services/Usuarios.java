@@ -25,6 +25,7 @@ import org.json.simple.JSONObject;
 import logica.Fabrica;
 import logica.interfaz.*;
 import Interface.IControladorFuncion;
+import java.text.SimpleDateFormat;
 import org.json.simple.JSONArray;
 
 /**
@@ -109,7 +110,7 @@ public class Usuarios {
                json.put("code", "0");
             }
             
-            return Response.ok(json.toJSONString(), MediaType.APPLICATION_JSON).build();
+            return Response.ok("["+json.toJSONString()+"]", MediaType.APPLICATION_JSON).build();
         } catch (Exception e) {
             return Response.ok(e.getMessage(),MediaType.APPLICATION_JSON).build();
         }
@@ -151,9 +152,14 @@ public class Usuarios {
             
             if(continuo == 1)
             {
-                if(ICU.login(nicknameUsuario, clave) > 0 )//Es que se logueo
+                if(nicknameUsuario.contains("@")){
+                    nicknameUsuario = ICU.nickUsuario(nicknameUsuario, clave);
+                }
+                int login = ICU.login(nicknameUsuario, clave);
+                if(login > 0 )//Es que se logueo
                 {
                     json.put("msg", "Inicio existoso..");
+                    json.put("dato",login);
                     json.put("code", "0");
                 }else{
                     json.put("msg", "Las credenciales no son validas, intente de nuevo.");
@@ -162,7 +168,7 @@ public class Usuarios {
             }
             
             
-            return Response.ok(json.toJSONString(),MediaType.APPLICATION_JSON).build();
+            return Response.ok("["+json.toJSONString()+"]",MediaType.APPLICATION_JSON).build();
         } catch (Exception e) {
             return Response.ok(e.getMessage(),MediaType.APPLICATION_JSON).build();
         }
@@ -194,11 +200,61 @@ public class Usuarios {
             json.put("usuario", out); 
             json.put("artista", out1);
             
-            return Response.ok(json.toJSONString(), MediaType.APPLICATION_JSON).build();
+            return Response.ok("["+json.toJSONString()+"]", MediaType.APPLICATION_JSON).build();
         }catch(Exception e)
         {
             return Response.ok(e.getMessage()).build();
         }
+    }
+    
+    
+    @POST
+    @Path("/modificarUsuario")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response modificarUsuario(@Valid ModificarUsuarioDto usuario) {
+        try {
+
+            String tipoUsuario = usuario.getTipoUsuario();
+            String nick = usuario.getNickCorreo();
+            String password = usuario.getPassword();
+
+            String nombre = usuario.getNombre();
+            String apellido = usuario.getApellido();
+            String fechaString = usuario.getFecha();
+            String json = "{"
+                    + "\"code\":" + "0,"
+                    + "\"msg\":" + "\"Se actualizo correctamente\"}";
+
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+            java.util.Date date = sdf1.parse(fechaString);
+            java.sql.Date fecha = new java.sql.Date(date.getTime());
+
+           if (tipoUsuario.equals("1")) {
+
+                if (ICU.EdiarEspectador(nick, nombre, apellido, password, fecha) == false) {
+                    json = "{"
+                            + "\"code\":" + "10,"
+                            + "\"msg\":" + "\"Error a la hora de  actualizar.\"}";
+                }
+            } else {
+
+                String biografia = usuario.getBiografia();
+                String descripcion = usuario.getDescripcion();
+                String URL = usuario.getUrl();
+
+                if (ICU.editarArtistas(nick, nombre, apellido, password, fecha, descripcion, URL, biografia) == false) {
+                    json = "{"
+                            + "\"code\":" + "100,"
+                            + "\"msg\":" + "\"Error a la hora de  actualizar.\"}";
+                }
+            }
+
+            return Response.ok(json, MediaType.APPLICATION_JSON).build();
+
+        } catch (Exception e) {
+            return Response.ok(e.getMessage()).build();
+        }
+
     }
     
 }

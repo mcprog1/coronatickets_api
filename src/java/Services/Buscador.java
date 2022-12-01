@@ -9,12 +9,16 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.Path;
 import DTOs.UsuarioDto;
+import java.io.StringWriter;
 import javax.ws.rs.Consumes;
 import static javax.ws.rs.HttpMethod.POST;
 import javax.ws.rs.*;
 import javax.ws.rs.Produces;
 import logica.Fabrica;
 import logica.interfaz.IControladorBusqueda;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 /**
  *
  * @author Nico
@@ -29,8 +33,11 @@ public class Buscador {
        public Response search(@QueryParam("plataformas") String plataformas, @QueryParam("categorias") String categorias, @QueryParam("busqueda") String busqueda)
        {
            try{
-            String json = ICB.busqueda(plataformas, categorias, busqueda);
-            return Response.ok(json,MediaType.APPLICATION_JSON).build();
+               
+                String busquea = ICB.busqueda(plataformas, categorias, busqueda);
+                
+                
+                return Response.ok("["+busquea+ "]",MediaType.APPLICATION_JSON).build();
            }catch(Exception e){
                return Response.ok(e.getMessage()).build();
            }
